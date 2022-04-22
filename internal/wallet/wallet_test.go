@@ -96,4 +96,92 @@ var _ = Describe("Wallet", func() {
 			service.Deposit("1", 100)
 		})
 	})
+
+	Describe("when Withdraw is called", func() {
+		It("should return error when repository returns error", func() {
+			mockRepo := &mocks.DynamoRepository{}
+			wallet := repository.Wallet{
+				UserId: "1",
+				UpdateSequence: "0",
+				Transactions: []repository.Transaction{
+					{
+						TransactionType: 0,
+						Amount: 100,
+					},
+				},
+			}
+
+			expect := errors.New("something wrong")
+
+			mockRepo.On("Get", mock.Anything).Return(wallet, expect)
+
+			service := New(mockRepo)
+			err := service.Withdraw("1", 100)
+
+			Expect(err).To(Equal(expect))
+		})
+
+		It("should update sequence number", func() {
+			mockRepo := &mocks.DynamoRepository{}
+			wallet := repository.Wallet{
+				UserId: "1",
+				UpdateSequence: "0",
+				Transactions: []repository.Transaction{
+					{
+						TransactionType: 0,
+						Amount: 100,
+					},
+				},
+			}
+
+			mockRepo.On("Get", mock.Anything).Return(wallet, nil)
+
+			//assert
+			mockRepo.On("Update", mock.MatchedBy(func(wallet repository.Wallet) bool {
+				return wallet.UpdateSequence == "1"
+			})).Return(nil)
+
+			service := New(mockRepo)
+			service.Withdraw("1", 100)
+		})
+
+		It("should add a transaction with right amount as withdraw", func() {
+			mockRepo := &mocks.DynamoRepository{}
+			wallet := repository.Wallet{
+				UserId: "1",
+				UpdateSequence: "0",
+				Transactions: []repository.Transaction{
+					{
+						TransactionType: 0,
+						Amount: 100,
+					},
+				},
+			}
+
+			mockRepo.On("Get", mock.Anything).Return(wallet, nil)
+
+			//assert
+			mockRepo.On("Update", mock.MatchedBy(func(wallet repository.Wallet) bool {
+				return wallet.Transactions[1].Amount == 100 && 
+					wallet.Transactions[1].TransactionType == 1
+			})).Return(nil)
+
+			service := New(mockRepo)
+			service.Withdraw("1", 100)
+		})
+
+		It("should not let negative balance", func() {
+			mockRepo := &mocks.DynamoRepository{}
+			wallet := repository.Wallet{
+				UserId: "1",
+				UpdateSequence: "0",
+			}
+
+			mockRepo.On("Get", mock.Anything).Return(wallet, nil)
+
+			service := New(mockRepo)
+			err := service.Withdraw("1", 100)
+			Expect(err.Error()).To(Equal("not enough balance to withdraw this amount"))
+		})
+	})
 })
