@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"bluelabs/wallet/internal/repository"
+	"bluelabs/wallet/internal/wallet"
 )
 
 func setupRoutes() *gin.Engine {
@@ -20,6 +21,16 @@ func setupRoutes() *gin.Engine {
 	})
 
 	r.POST("/wallet/create/:userId", func(c *gin.Context) {
+		userId := c.Params.ByName("userId")
+		wallet := wallet.New(repository)
+		err := wallet.Create(userId)
+
+		//or error status code. depends on what client wants and consistency with other services
+		if err != nil {
+			SendError(c, err)
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "success",
 		})
@@ -44,4 +55,10 @@ func setupRoutes() *gin.Engine {
 	})
 
 	return r
+}
+
+func SendError(c *gin.Context, err error) {
+	c.JSON(200, gin.H{
+		"message": err.Error(),
+	})
 }
