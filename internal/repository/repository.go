@@ -16,3 +16,5 @@ func New(client *dynamodb.Client) *DynamoRepository {
 		client: client,
 	}
 }
+
+var tableName string = "wallet"

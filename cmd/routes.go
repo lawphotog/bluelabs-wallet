@@ -2,10 +2,16 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"bluelabs/wallet/internal/repository"
 )
 
 func setupRoutes() *gin.Engine {
 	r := gin.Default()
+
+	client := CreateLocalClient()
+	repository := repository.New(client)
+
+	repository.Setup() //one off to set up dynamodb
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
