@@ -65,6 +65,19 @@ func setupRoutes() *gin.Engine {
 	})
 
 	r.POST("/wallet/withdraw/:userId/:amount", func(c *gin.Context) {
+		userId := c.Params.ByName("userId")
+		amount := c.Params.ByName("amount")
+		amountInt, err := strconv.Atoi(amount)
+		if err != nil {
+			SendError(c, err)			
+		}
+
+		wallet := wallet.New(repository)
+		err = wallet.Withdraw(userId, int64(amountInt))
+		if err != nil {
+			SendError(c, err)
+			return
+		}
 		c.JSON(200, gin.H{
 			"message": "success",
 		})		
