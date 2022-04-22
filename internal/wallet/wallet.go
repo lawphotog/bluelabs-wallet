@@ -14,6 +14,7 @@ type Wallet interface {
 	Create(userId string) error
 	Deposit(userId string, amount int64) error
 	Withdraw(userId string, amount int64) error
+	Balance(userId string) (int64, error)
 }
 
 const (
@@ -81,6 +82,14 @@ func (w *wallet) Withdraw(userId string, amount int64) error {
 
 	w.repository.Update(wallet)
 	return nil
+}
+
+func (w *wallet) Balance(userId string) (int64, error) {
+	wallet, err := w.repository.Get(userId)
+	if err != nil {
+		return 0, err
+	}
+	return getBalance(wallet.Transactions)
 }
 
 func updateSequence(wallet *repository.Wallet) {

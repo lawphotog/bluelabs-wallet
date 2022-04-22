@@ -184,4 +184,44 @@ var _ = Describe("Wallet", func() {
 			Expect(err.Error()).To(Equal("not enough balance to withdraw this amount"))
 		})
 	})
+
+	Describe("when Balance is called", func() {
+		It("should return zero balance on new wallet", func() {
+			mockRepo := &mocks.DynamoRepository{}
+			wallet := repository.Wallet{
+				UserId: "1",
+				UpdateSequence: "0",
+			}
+			mockRepo.On("Get", mock.Anything).Return(wallet, nil)
+			service := New(mockRepo)
+			balance, _ := service.Balance("1")
+
+			var expect int64 = 0
+			Expect(balance).To(Equal(expect))
+		})
+
+		It("should get the right balance", func() {
+			mockRepo := &mocks.DynamoRepository{}
+			wallet := repository.Wallet{
+				UserId: "1",
+				UpdateSequence: "0",
+				Transactions: []repository.Transaction{
+					{
+						TransactionType: 0,
+						Amount: 100,
+					},
+					{
+						TransactionType: 1,
+						Amount: 50,
+					},
+				},
+			}
+			mockRepo.On("Get", mock.Anything).Return(wallet, nil)
+			service := New(mockRepo)
+			balance, _ := service.Balance("1")
+
+			var expect int64 = 50
+			Expect(balance).To(Equal(expect))
+		})
+	})
 })

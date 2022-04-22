@@ -39,8 +39,16 @@ func setupRoutes() *gin.Engine {
 	})
 
 	r.GET("/wallet/getbalance/:userId", func(c *gin.Context) {
+		userId := c.Params.ByName("userId")
+		wallet := wallet.New(repository)
+		balance, err := wallet.Balance(userId)
+		if err != nil {
+			SendError(c, err)
+			return
+		}
+
 		c.JSON(200, gin.H{
-			"message": "success",
+			"message": balance,
 		})
 	})
 
