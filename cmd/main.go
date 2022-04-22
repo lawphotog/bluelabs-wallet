@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	fmt.Println("app starting ..")
 
-	r := gin.New()
+	r := setupRoutes()
+	fmt.Println("service listening on port 8080")
 	r.Run()
 }
