@@ -1,9 +1,11 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"bluelabs/wallet/internal/repository"
 	"bluelabs/wallet/internal/wallet"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func setupRoutes() *gin.Engine {
@@ -43,6 +45,20 @@ func setupRoutes() *gin.Engine {
 	})
 
 	r.POST("/wallet/deposit/:userId/:amount", func(c *gin.Context) {
+		userId := c.Params.ByName("userId") //or Post Body
+		amount := c.Params.ByName("amount") //or Post Body
+		amountInt, err := strconv.Atoi(amount)
+		if err != nil {
+			SendError(c, err)
+			return
+		}
+
+		wallet := wallet.New(repository)
+		err = wallet.Deposit(userId, int64(amountInt))
+		if err != nil {
+			SendError(c, err)
+			return
+		}
 		c.JSON(200, gin.H{
 			"message": "success",
 		})
